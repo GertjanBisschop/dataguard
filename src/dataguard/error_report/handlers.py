@@ -119,14 +119,40 @@ def parse_schema_error(
     idx_columns: list[str],
     error_level: str = ErrorLevel.ERROR.value,
 ) -> DFErrorSchema:
+    reason_code = schema_error.reason_code
+
+    match reason_code:
+        case pa.errors.SchemaErrorReason.SERIES_CONTAINS_NULLS:
+            message = (
+                'Column under validation must not contain missing values.'  # noqa: E501
+            )
+        case pa.errors.SchemaErrorReason.COLUMN_NOT_IN_DATAFRAME:
+            message = 'Column under validation must not be missing.'
+        case pa.errors.SchemaErrorReason.SERIES_CONTAINS_DUPLICATES:
+            message = (
+                'Column under validation must not contain duplicate values.'  # noqa: E501
+            )
+        case pa.errors.SchemaErrorReason.DUPLICATES:
+            message = (
+                'Column under validation must not contain duplicate values.'  # noqa: E501
+            )
+        case pa.errors.SchemaErrorReason.CHECK_ERROR:
+            message = (
+                f'Error while executing check: {schema_error.check.title}.'  # noqa: E501
+            )
+        case _:
+            message = message_handler(schema_error)
+
     return DFErrorSchema(
         type=str(schema_error.reason_code),
-        message=str(schema_error),
+        message=message,
         level=getattr(schema_error.check, 'name', error_level),
-        title=(
-            schema_error.check.title
-            if isinstance(schema_error.check.title, str)
-            else schema_error.check.title()
+        title=' '.join(
+            (
+                schema_error.check.title
+                if isinstance(schema_error.check.title, str)
+                else schema_error.check.title()
+            ).split('_')
         ),
         column_names=(
             list(schema_error.schema.columns.keys())
@@ -136,3 +162,21 @@ def parse_schema_error(
         row_ids=create_row_idx(schema_error.check_output),
         idx_columns=idx_columns,
     )
+
+
+def message_handler(schema_error: pa.errors.SchemaError) -> None:
+    msg = schema_error.check.error
+
+    if hasattr(schema_error.schema, 'columns'):
+        return msg
+
+    if hasattr(schema_error.failure_cases, 'to_dicts'):
+        failure_cases = schema_error.failure_cases.to_dicts()[:5]
+        examples_msg = f' Failure case examples: {failure_cases}'
+
+        if len(examples_msg) > 250:  # noqa: PLR2004
+            examples_msg = examples_msg[:250] + '...'
+
+        msg += examples_msg
+
+    return msg
