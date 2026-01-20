@@ -59,16 +59,16 @@ title_mapper = {
 
 msg_mapper = {
     'is_equal_to': 'be equal to',
-    'is_equal_to_or_both_missing': 'be equal to or both are missing',
+    'is_equal_to_or_both_missing': 'either not contain any values or must be equal to',  # noqa: E501
     'is_greater_than_or_equal_to': 'be greater than or equal to',
     'is_greater_than': 'be greater than',
     'is_less_than_or_equal_to': 'be less than or equal to',
     'is_less_than': 'be less than',
     'is_not_equal_to': 'not be equal to',
-    'is_not_equal_to_and_not_both_missing': 'not be equal to and not both are missing',  # noqa: E501
+    'is_not_equal_to_and_not_both_missing': 'contain values and must be different from',  # noqa: E501
     'is_unique': 'be unique',
     'is_duplicated': 'be duplicated',
     'is_in': 'be in',
-    'is_null': 'be missing',
-    'is_not_null': 'not be missing',
+    'is_null': 'not contain any values',
+    'is_not_null': 'contain values',
 }
