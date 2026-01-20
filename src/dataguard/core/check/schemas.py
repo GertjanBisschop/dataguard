@@ -9,6 +9,8 @@ from pydantic import BaseModel, Field
 from dataguard.core.utils.enums import CheckCases
 from dataguard.core.utils.mappers import (
     expression_mapper,
+    msg_mapper,
+    title_mapper,
 )
 
 
@@ -29,19 +31,13 @@ class SimpleCheckExpression(BaseModel):
     arg_columns: list[str] | None = None
 
     def get_check_title(self) -> str:
-        try:
-            return self.command.replace('_', ' ').capitalize()
-        except AttributeError:
-            return self.command.__name__.replace('_', ' ').capitalize()
+        if ret := title_mapper.get(self.command):
+            return ret
+        return self.command.__name__.replace('_', ' ').capitalize()
 
     def get_check_message(self) -> str:
-        msg = f'The column under validation {self.get_check_title().lower()}'
+        msg = f'The column(s) under validation must {msg_mapper.get(self.command, self.get_check_title().lower())}'  # noqa: E501
 
-        if self.subject:
-            msg = (
-                f'Column(s) {get_args_string(self.subject)} '
-                f'{self.get_check_title().lower()}'
-            )
         if self.arg_values:
             msg += f' {get_args_string(self.arg_values)}'
         elif self.arg_columns:

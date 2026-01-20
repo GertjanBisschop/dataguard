@@ -176,7 +176,7 @@ def test_validator_before_pandera_validation(
     assert [exception.level.name for exception in error_collector.get_errors().exceptions] == expected_output['exception_levels']
     
 @pytest.mark.parametrize("input_config, input_data, expected_output", [
-    (   ### INIT ###
+    (   ### 0 INIT ###
         ## Config
         {
             'name': 'empty dataframe + minimal config',
@@ -197,7 +197,7 @@ def test_validator_before_pandera_validation(
         'exception_levels': [],
         }
     ),  ### END ###
-    (   ### INIT ###
+    (   ### 1 INIT ###
         ## Config
         {
             'name': 'empty dataframe + col not required',
@@ -225,7 +225,7 @@ def test_validator_before_pandera_validation(
         'exception_levels': [],
         }
     ),  ### END ###
-    (   ### INIT ###
+    (   ### 2 INIT ###
         ## Config
         {
             'name': 'Col not nullable + missing data in df',
@@ -253,7 +253,7 @@ def test_validator_before_pandera_validation(
         'exception_levels': [],
         }
     ),  ### END ###
-    (   ### INIT ###
+    (   ### 3 INIT ###
         ## Config
         {
             'name': 'All good',
@@ -281,7 +281,7 @@ def test_validator_before_pandera_validation(
         'exception_levels': [],
         }
     ),  ### END ###
-    (   ### INIT ###
+    (   ### 4INIT ###
         ## Config
         {
             'name': 'Col required but missing in df',
@@ -309,7 +309,7 @@ def test_validator_before_pandera_validation(
         'exception_levels': [],
         }
     ),  ### END ###
-    (   ### INIT ###
+    (   ### 5 INIT ###
         ## Config
         {
             'name': 'Col unique but duplicates in df',
@@ -337,7 +337,7 @@ def test_validator_before_pandera_validation(
         'exception_levels': [],
         }
     ),  ### END ###
-    (   ### INIT ###
+    (   ### 6 INIT ###
         ## Config
         {
             'name': 'Col unique AND not nullable but duplicates AND nullable in df',
@@ -368,7 +368,7 @@ def test_validator_before_pandera_validation(
         'exception_levels': [],
         }
     ),  ### END ###
-    (   ### INIT ###
+    (   ### 7 INIT ###
         ## Config
         {
             'name': 'Col unique AND not nullable but duplicates AND nullable in df + fail check',
@@ -406,7 +406,7 @@ def test_validator_before_pandera_validation(
         'exception_levels': [],
         }
     ),  ### END ###
-    (   ### INIT ###
+    (   ### 8 INIT ###
         ## Config
         {
             'name': 'Col unique AND not nullable but duplicates AND nullable in df + fail check',
@@ -444,7 +444,7 @@ def test_validator_before_pandera_validation(
         'exception_levels': [],
         }
     ),  ### END ###
-    (   ### INIT ###
+    (   ### 9 INIT ###
         ## Config
         {
             'name': 'Col unique at df level - falls under eager validation in pandera',
@@ -474,7 +474,7 @@ def test_validator_before_pandera_validation(
         'exception_levels': [],
         }
     ),  ### END ###
-    (   ### INIT ###
+    (   ### 10 INIT ###
         ## Config
         {
             'name': 'Col > x OR <y',
@@ -814,7 +814,7 @@ def test_validator_collect_errors(
     validator = Validator.config_from_mapping(config=input_config)
     
     validator.validate(input_data)
-
+    
     assert validator is not None
     assert error_collector is not None
     assert len(error_collector.get_errors().error_reports) == expected_output['len_error_reports']
@@ -907,3 +907,277 @@ def test_validator_eager_validation(input_config, input_data,):
             input_data, lazy_validation=False, collect_exceptions=False
             )
 
+
+@pytest.mark.parametrize("input_config, input_data, expected_output", [
+    (   ### INIT ###
+        ## Config
+        {
+            'name': 'Column check - not nullable',
+            'columns': [{
+                'id': 'col1',
+                'data_type': 'integer',
+                'nullable': False,
+                'unique': False,
+                'required': True,
+                'checks': []
+            },],
+            'ids': [],
+            'metadata': {},
+            'checks': []
+        }, 
+        ## Data
+        {
+            'col1': [1, 2, 3, None],
+        },
+        ## Expected output 
+        {
+        'type': 'SchemaErrorReason.SERIES_CONTAINS_NULLS',
+        'message': 'Column under validation must not contain missing values.',
+        'column_names': ['col1'],
+        'row_ids': [3],
+        }
+    ),  ### END ###
+    (   ### INIT ###
+        ## Config
+        {
+            'name': 'Column not in Dataframe',
+            'columns': [{
+                'id': 'col1',
+                'data_type': 'integer',
+                'nullable': True,
+                'unique': False,
+                'required': True,
+                'checks': []
+            },],
+            'ids': [],
+            'metadata': {},
+            'checks': []
+        }, 
+        ## Data
+        {
+            'col2': [1, 2, 3],
+        },
+        ## Expected output 
+        {
+        'type': 'SchemaErrorReason.COLUMN_NOT_IN_DATAFRAME',
+        'message': 'Column under validation must not be missing.',
+        'column_names': ['col1'],
+        'row_ids': [],
+        }
+    ),  ### END ###
+    (   ### INIT ###
+        ## Config
+        {
+            'name': 'Column contains duplicates',
+            'columns': [{
+                'id': 'col1',
+                'data_type': 'integer',
+                'nullable': True,
+                'unique': True,
+                'required': True,
+                'checks': []
+            },],
+            'ids': [],
+            'metadata': {},
+            'checks': []
+        }, 
+        ## Data
+        {
+            'col1': [1, 2, 3, 3],
+        },
+        ## Expected output 
+        {
+        'type': 'SchemaErrorReason.SERIES_CONTAINS_DUPLICATES',
+        'message': 'Column under validation must not contain duplicate values.',
+        'column_names': ['col1'],
+        'row_ids': [2, 3],
+        }
+    ),  ### END ###
+    (   ### INIT ###
+        ## Config
+        {
+            'name': 'Check Error - Column level',
+            'columns': [{
+                'id': 'col1',
+                'data_type': 'integer',
+                'nullable': True,
+                'unique': False,
+                'required': True,
+                'checks': [{
+                        'command': 'is_not_equal_to_and_not_both_missing',
+                        'arg_columns': ['col2'],  # col2 does not exist in df
+                    }]
+            },],
+            'ids': [],
+            'metadata': {},
+            'checks': []
+        }, 
+        ## Data
+        {
+            'col1': [1, 2, 3, 3],
+        },
+        ## Expected output 
+        {
+        'type': 'SchemaErrorReason.CHECK_ERROR',
+        'message': 'Error while executing check: not equal to and not both are missing.',
+        'column_names': ['col1'],
+        'row_ids': [],
+        }
+    ),  ### END ###
+    (   ### INIT ###
+        ## Config
+        {
+            'name': 'Check Error - Dataframe level',
+            'columns': [{
+                'id': 'col1',
+                'data_type': 'integer',
+                'nullable': True,
+                'unique': False,
+                'required': True,
+                'checks': [{
+                        'command': 'is_not_equal_to',
+                        'arg_values': [3],
+                    }]
+            },],
+            'ids': [],
+            'metadata': {},
+            'checks': []
+        }, 
+        ## Data
+        {
+            'col1': [1, 2, 3, 3],
+        },
+        ## Expected output 
+        {
+        'type': 'SchemaErrorReason.DATAFRAME_CHECK',
+        'message': "The column(s) under validation must not be equal to \"3\" Failure case examples: [{'col1': 3}, {'col1': 3}]",
+        'column_names': ['col1'],
+        'row_ids': [2, 3],
+        }
+    ),  ### END ###
+    (   ### INIT ###
+        ## Config
+        {
+            'name': 'Check Error - Series Level',
+            'columns': [{
+                'id': 'col1',
+                'data_type': 'integer',
+                'nullable': True,
+                'unique': False,
+                'required': True,
+                'checks': [{
+                        'command': 'is_not_equal_to',
+                        'arg_values': [3],
+                    }]
+            },],
+            'ids': [],
+            'metadata': {},
+            'checks': []
+        }, 
+        ## Data
+        {
+            'col1': [1, 2, 3, 3],
+        },
+        ## Expected output 
+        {
+        'type': 'SchemaErrorReason.DATAFRAME_CHECK',
+        'message': "The column(s) under validation must not be equal to \"3\" Failure case examples: [{'col1': 3}, {'col1': 3}]",
+        'column_names': ['col1'],
+        'row_ids': [2, 3],
+        }
+    ),  ### END ###
+    (   ### INIT ###
+        ## Config
+        {
+            'name': 'Check Error - Dataframe level',
+            'columns': [{
+                'id': 'col1',
+                'data_type': 'integer',
+                'nullable': True,
+                'unique': False,
+                'required': True,
+                'checks': []
+            },
+            {
+                'id': 'col2',
+                'data_type': 'integer',
+                'nullable': True,
+                'unique': False,
+                'required': True,
+                'checks': []
+            },],
+            'ids': [],
+            'metadata': {},
+            'checks': [{
+                        'command': 'is_not_equal_to',
+                        'arg_values': [3],
+                    }]
+        }, 
+        ## Data
+        {
+            'col1': [1, 2, 3, 3],
+            'col2': [1, 2, 3, 3],
+        },
+        ## Expected output 
+        {
+        'type': 'SchemaErrorReason.DATAFRAME_CHECK',
+        'message': "The column(s) under validation must not be equal to \"3\"",
+        'column_names': ['col1', 'col2'],
+        'row_ids': [2, 3],
+        }
+    ),  ### END ###
+    (   ### INIT ###
+        ## Config
+        {
+            'name': 'Check Error - Dataframe level',
+            'columns': [{
+                'id': 'col1',
+                'data_type': 'integer',
+                'nullable': True,
+                'unique': False,
+                'required': True,
+                'checks': [{
+                    'check_case': 'disjunction',
+                    'expressions': [
+                        {
+                        'command': 'is_greater_than', 
+                        'arg_values': [10]
+                        },
+                        {
+                        'command': 'is_less_than', 
+                        'arg_values': [1]
+                        }]
+            },],}],
+            'ids': [],
+            'metadata': {},
+            'checks': []
+        }, 
+        ## Data
+        {
+            'col1': [1, 2, 3, 4, 8, 9, 5],
+        },
+        ## Expected output 
+        {
+        'type': 'SchemaErrorReason.DATAFRAME_CHECK',
+        'message': "The column(s) under validation must be greater than \"10\" or The column(s) under validation must be less than \"1\" Failure case examples: [{'col1': 1}, {'col1': 2}, {'col1': 3}, {'col1': 4}, {'col1': 8}]",
+        'column_names': ['col1'],
+        'row_ids': [0, 1, 2, 3, 4, 5, 6],
+        }
+    ),  ### END ###
+])
+def test_validator_error_message(
+    error_collector, input_config, input_data, expected_output
+    ):
+   
+    validator = Validator.config_from_mapping(config=input_config)
+    
+    validator.validate(input_data)
+    
+    error = error_collector.get_errors().error_reports[0].errors[0]
+
+    assert validator is not None
+    assert error_collector is not None
+    assert error.type == expected_output['type']
+    assert error.message == expected_output['message']
+    assert error.column_names == expected_output['column_names']
+    assert error.row_ids == expected_output['row_ids']

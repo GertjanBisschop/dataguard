@@ -38,3 +38,37 @@ expression_mapper = {
     'is_null': 'is_null',
     'is_not_null': 'is_not_null',
 }
+
+# maps for errors
+
+title_mapper = {
+    'is_equal_to': 'equal to',
+    'is_equal_to_or_both_missing': 'equal to or both are missing',
+    'is_greater_than_or_equal_to': 'greater than or equal to',
+    'is_greater_than': 'greater than',
+    'is_less_than_or_equal_to': 'less than or equal to',
+    'is_less_than': 'less than',
+    'is_not_equal_to': 'not equal to',
+    'is_not_equal_to_and_not_both_missing': 'not equal to and not both are missing',  # noqa: E501
+    'is_unique': 'unique',
+    'is_duplicated': 'duplicated',
+    'is_in': 'in',
+    'is_null': 'missing',
+    'is_not_null': 'not missing',
+}
+
+msg_mapper = {
+    'is_equal_to': 'be equal to',
+    'is_equal_to_or_both_missing': 'be equal to or both are missing',
+    'is_greater_than_or_equal_to': 'be greater than or equal to',
+    'is_greater_than': 'be greater than',
+    'is_less_than_or_equal_to': 'be less than or equal to',
+    'is_less_than': 'be less than',
+    'is_not_equal_to': 'not be equal to',
+    'is_not_equal_to_and_not_both_missing': 'not be equal to and not both are missing',  # noqa: E501
+    'is_unique': 'be unique',
+    'is_duplicated': 'be duplicated',
+    'is_in': 'be in',
+    'is_null': 'be missing',
+    'is_not_null': 'not be missing',
+}

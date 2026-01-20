@@ -32,35 +32,35 @@ def test_case_check_expression_invalid_length():
         )
     
 def test_simple_check_expression_get_check_name():
-    instance = SimpleCheckExpression(command='test_command')
-    assert instance.get_check_title() == 'Test command'
+    instance = SimpleCheckExpression(command='is_equal_to')
+    assert instance.get_check_title() == 'equal to'
 
 
 def test_simple_check_expression_get_message_with_subject():
-    instance = SimpleCheckExpression(command='test_command', subject=['column1', 'column2'])
-    assert instance.get_check_message() == "Column(s) ['column1', 'column2'] test command"
+    instance = SimpleCheckExpression(command='is_equal_to', subject=['column1', 'column2'])
+    assert instance.get_check_message() == "The column(s) under validation must be equal to"
 
 
 def test_simple_check_expression_get_message_with_arg_values():
-    instance = SimpleCheckExpression(command='test_command', arg_values=[1, 2, 3])
-    assert instance.get_check_message() == 'The column under validation test command [1, 2, 3]'
+    instance = SimpleCheckExpression(command='is_equal_to', arg_values=[1, 2, 3])
+    assert instance.get_check_message() == 'The column(s) under validation must be equal to [1, 2, 3]'
 
 
 def test_simple_check_expression_get_message_with_arg_columns():
-    instance = SimpleCheckExpression(command='test_command', arg_columns=['col1', 'col2'])
-    assert instance.get_check_message() == "The column under validation test command ['col1', 'col2']"
+    instance = SimpleCheckExpression(command='is_equal_to', arg_columns=['col1', 'col2'])
+    assert instance.get_check_message() == "The column(s) under validation must be equal to ['col1', 'col2']"
 
 
 def test_simple_check_expression_map_command():
-    expression_mapper['test_command'] = 'mapped_command'
-    instance = SimpleCheckExpression(command='test_command')
+    expression_mapper['is_equal_to'] = 'mapped_command'
+    instance = SimpleCheckExpression(command='is_equal_to')
     instance.map_command()
     assert instance.command == 'mapped_command'
 
 
 def test_simple_check_expression_get_args():
     instance = SimpleCheckExpression(
-        command='test_command',
+        command='is_equal_to',
         subject=['column1'],
         arg_values=[1, 2],
         arg_columns=['col1']
@@ -74,31 +74,31 @@ def test_simple_check_expression_get_args():
 
 
 def test_case_check_expression_get_check_name():
-    expression_mapper['test_command'] = 'mapped_command'
-    simple_expr = SimpleCheckExpression(command='test_command')
+    expression_mapper['is_equal_to'] = 'mapped_command'
+    simple_expr = SimpleCheckExpression(command='is_equal_to')
     case_expr = CaseCheckExpression(
         check_case=CheckCases.CONJUNCTION,
         expressions=[simple_expr, simple_expr]
     )
-    assert case_expr.get_check_title() == 'Test command and Test command'
+    assert case_expr.get_check_title() == 'equal to and equal to'
 
 
 def test_case_check_expression_get_message():
-    expression_mapper['test_command'] = 'mapped_command'
-    simple_expr = SimpleCheckExpression(command='test_command', subject=['column1'])
+    expression_mapper['is_equal_to'] = 'mapped_command'
+    simple_expr = SimpleCheckExpression(command='is_equal_to', subject=['column1'])
     case_expr = CaseCheckExpression(
         check_case=CheckCases.CONJUNCTION,
         expressions=[simple_expr, simple_expr]
     )
     assert case_expr.get_check_message() == (
-        'Column(s) "column1" test command and Column(s) "column1" test command'
+        'The column(s) under validation must be equal to and The column(s) under validation must be equal to'
     )
 
 
 def test_case_check_expression_get_args():
-    expression_mapper['test_command'] = 'mapped_command'
+    expression_mapper['is_equal_to'] = 'mapped_command'
     simple_expr = SimpleCheckExpression(
-        command='test_command',
+        command='is_equal_to',
         subject=['column1'],
         arg_values=[1, 2]
     )
@@ -114,8 +114,8 @@ def test_case_check_expression_get_args():
 
 
 def test_case_check_expression_invalid_case():
-    expression_mapper['test_command'] = 'mapped_command'
-    simple_expr = SimpleCheckExpression(command='test_command')
+    expression_mapper['is_equal_to'] = 'mapped_command'
+    simple_expr = SimpleCheckExpression(command='is_equal_to')
     with pytest.raises(ValidationError) as exc_info:
         CaseCheckExpression(
             check_case='invalid_case',  # Invalid case
